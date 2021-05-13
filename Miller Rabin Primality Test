@@ -1,0 +1,40 @@
+# MRwitness(n,a) that tests if aa is a Miller-Rabin witness for nn. It always returns a boolean value.
+def MRwitness(n,a):
+# your code here
+    gc = gcd(a,n)
+    if n%2 == 0:
+        return True
+    elif gc > 1 and gc < n:
+        return True
+    x = n-1
+    k = valuation(x,2)
+    q = Integer(x / (2^k))
+    a = power_mod(a,q,n)
+    if a == power_mod(1,1,n):
+        return False
+    for i in range(k):
+        if a == power_mod(-1,1,n):
+            return False
+        a = power_mod(a,2,n)
+    return True
+
+# MRcount(n) that takes as input a positive integer nn and finds the number of Miller-Rabin witnesses between 22 and n-1n−1. The output should be SAGE integer.
+def MRcount(n):
+    if n <= 0 or type(n) != Integer:
+        return 'Invalid Input'
+    total = 0
+    for i in range(2,n):
+        if MRwitness(n,i):
+            total += 1
+    return total
+    
+# MR(n,k) that generates kk random integers aa between 2 and n-1n−1 and checks if any of them is a witness for n.n. 
+# Use MRwitness(n,a) function for this. If it found a witness, it returns 'Composite'. If it did not find a witness among the k random numbers,
+# it returns 'Probably prime with margin of error (0.25)^k* log(n)'.
+def MR(n,k):
+    for i in range(k):
+        a = randint(2,n)
+        if MRwitness(n,a):
+            return 'Composite'
+    fl = RR((0.25)^k*ln(n))
+    return 'Probably prime with margin of error ' + str(fl) 
