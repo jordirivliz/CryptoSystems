@@ -37,7 +37,7 @@ def ngram(s,N):
     t = ' '.join(t[i: i+N] for i in range(0, len(t), N))
     return t
     
-# Encrypt Caesar  
+# CAESAR ENCRYPTION
 def encrypt_caesar_gram(s,k,N):
     s = ngram(s,N)
     if s == 'Invalid input':
@@ -60,7 +60,7 @@ def encrypt_caesar_gram(s,k,N):
     output = ngram(output, N)
     return output
  
- # Decrypt Caesar
+ # CAESAR DECRYPTION
  def decrypt_caesar(s,k):
     s = remove_punctuation(s)
     if s == 'Invalid input':
@@ -85,7 +85,7 @@ def encrypt_caesar_gram(s,k,N):
         output = output + asc
     return output
  
- # Vigenere Encryption
+ # VIGENERE ENCRYPTION
  def encrypt_vigenere(s,k,N):
     if type(N) != Integer:
         return 'Invalid input'
@@ -108,8 +108,8 @@ def encrypt_caesar_gram(s,k,N):
     output = ngram(output, N)
     return output
     
- # Vigenere Decryption
- def decrypt_vigenere(s,k):
+# VIGENERE DECRYPTION
+def decrypt_vigenere(s,k):
     t = str26(s)
     if t == 'Invalid input': return t
     if len(k) == 0: return 'Invalid input'
