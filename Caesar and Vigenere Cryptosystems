@@ -1,0 +1,121 @@
+import string
+
+#takes as input a string of characters, capitalizes it and returns the integer obtained by concatenating the corresponding  ASCII codes
+def str2num(s): 
+    return ZZ(''.join([str(ord(i)) for i in s.upper()]))
+
+#the inverse of the function in (a), takes as input an integer and returns the corresponding message (capitalized)
+def num2str(m): 
+    m=str(m)
+    return ''.join(chr(int(m[i:i+2])) for i in range(0,len(m),2))
+    
+#remove_punctuation(s) that takes as input a string s and returns the same string stripped of spaces and punctuation, and converts all letters to upper case.   
+def remove_punctuation(s):
+    output = ''
+    if type(s) != str:
+        output = 'Invalid input'
+        return output
+    s = s.upper()
+    alphabet = string.ascii_uppercase
+    l = list(alphabet)
+    l.extend(['.', ',', '!', '?', ' ', '"', ':', ';', '...', '-', '_', '–', '(', ')', '[', ']', '\''])
+    for char in s:
+        if char not in l:
+            return 'Invalid input'
+        else:
+            if char.isalnum():
+                output = output + char
+    return output    
+
+#ngram(s,N) that takes as input a string s, and a positive integer N; returns the string s separated into N-grams, all in capital letters and stripped of punctuation.
+def ngram(s,N):
+    if N <= 0:
+        return 'Invalid input'
+    t = remove_punctuation(s)
+    if t == 'Invalid input':
+        return 'Invalid input'
+    t = ' '.join(t[i: i+N] for i in range(0, len(t), N))
+    return t
+    
+# Encrypt Caesar  
+def encrypt_caesar_gram(s,k,N):
+    s = ngram(s,N)
+    if s == 'Invalid input':
+        return 'Invalid input'
+    if len(k) > 1 or len(k) == 0:
+        return 'Invalid input'
+    original = str26(s)
+    t = str26(k)
+    if t == 'Invalid input':
+        return 'Invalid input'
+    leng = len(original)
+    encrypt = [None]* leng
+    for i in range(0, leng):
+        num = (original[i] + t[0])%26
+        encrypt[i] = num
+    output = ''
+    for val in encrypt:
+        asc = chr(val+65)
+        output = output + asc
+    output = ngram(output, N)
+    return output
+ 
+ # Decrypt Caesar
+ def decrypt_caesar(s,k):
+    s = remove_punctuation(s)
+    if s == 'Invalid input':
+        return 'Invalid input'
+    s = s.upper()
+    if len(k) > 1 or len(k) == 0:
+        return 'Invalid input'
+    if s == 'Invalid input':
+        return 'Invalid input'
+    t = str26(k)
+    if t == 'Invalid input':
+        return 'Invalid input'
+    original = str26(s)
+    leng = len(original)
+    decrypt = [None]* leng
+    for i in range(0, leng):
+        num = (original[i] - t[0])%26
+        decrypt[i] = num
+    output = ''
+    for val in decrypt:
+        asc = chr(val+65)
+        output = output + asc
+    return output
+ 
+ # Vigenere Encryption
+ def encrypt_vigenere(s,k,N):
+    if type(N) != Integer:
+        return 'Invalid input'
+    s = remove_punctuation(s)
+    if s == 'Invalid input':
+        return 'Invalid input'
+    k = remove_punctuation(k)
+    if k == 'Invalid input':
+        return 'Invalid input'
+    if N <= 0:
+        return 'Invalid input'
+    t = str26(s)
+    if t == 'Invalid input': return t
+    if len(k) == 0: return 'Invalid input'
+    if str26(k) == 'Invalid input': return 'Invalid input'
+    key = (str26(k)*len(s))[:len(s)]
+    output = ''
+    for i in range(len(t)):
+        output += chr(((t[i]+key[i])%26)+65)
+    output = ngram(output, N)
+    return output
+    
+ # Vigenere Decryption
+ def decrypt_vigenere(s,k):
+    t = str26(s)
+    if t == 'Invalid input': return t
+    if len(k) == 0: return 'Invalid input'
+    if str26(k) == 'Invalid input': return 'Invalid input'
+    key = (str26(k)*len(s))[:len(s)]
+    output = ''
+    for i in range(len(t)):
+        output += chr(((t[i]-key[i])%26)+65)
+    return output
