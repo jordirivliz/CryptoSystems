@@ -1,0 +1,41 @@
+def str2num(s): #takes as input a string of characters, capitalizes it and returns the integer obtained by concatenating the corresponding  ASCII codes
+    return ZZ(''.join([str(ord(i)) for i in s.upper()]))
+
+def num2str(m): #the inverse of the function in (a), takes as input an integer and returns the corresponding message (capitalized)
+    m=str(m)
+    return ''.join(chr(int(m[i:i+2])) for i in range(0,len(m),2))
+    
+# ephemeralkey(p) that takes as input a prime pp generates a random ephemeral key (as a SAGE integer) between p^{1/4} and p^{3/4} for Bob's ElGamal encryption
+def ephemeralkey(p):
+    Fp = GF(p)
+    p1 = ceil(p^0.25)
+    p2 = floor(p^0.75)
+    randomkey = randint(p1,p2)
+    return ZZ(Fp(randomkey))
+
+# elgamalencrypt(p,a,A,s) that takes as input a prime p, a primitive root a modulo p, a public key A, a string s (the plaintext), 
+# returns the encryption of s that results from encrypting the integer str2num(s) using an ElGamal system with prime p, primitive root a and public key A. 
+def elgamalencrypt(p,a,A,s):
+    if is_prime(p):
+        output = ()
+        Fp = GF(p)
+        s = str2num(s)
+        k = ephemeralkey(p)
+        c1 = Fp(a)^k
+        c2 = Fp(s)*Fp(A)^k
+        output = (ZZ(c1), ZZ(c2))
+        return output
+    else:
+        return 'p is not prime'
+        
+# elgamaldecrypt(p,n,c) that takes as input a prime p, a private key n and a pair of integers c (the ciphertext) and returns a string that is the decrypted string 
+# corresponding to the ciphertext c that was encrypted using the prime p and the public key corresponding to the private key n and some primitive root a. 
+# Use the function num2str to convert the plaintext SAGE integer to a string.
+def elgamaldecrypt(p,n,c):
+    if is_prime(p):
+        Fp = GF(p)
+        m = Fp(c[0])^(-n)*Fp(c[1])
+        m = num2str(m)
+        return m
+    else: 
+        return 'p is not prime'
