@@ -1,0 +1,44 @@
+import random
+
+# pubkey(p, g, x) that produces a public key for Diffie-Hellman. It takes as input an odd prime p, a primitive root g modulo p, and an integer (the private key) x. 
+# It returns the public key corresponding to this data as a SAGE integer.
+def pubkey(p,g,x):
+    g = mod(g,p)
+    if not g.is_primitive_root():
+        return 'g is not a primitive root mod p'
+    if is_prime(p):
+        if p%2 == 0:
+            return 'p is not an odd prime'
+        Fp = GF(p) #integers mod p
+        A = Fp(g)^x
+        return ZZ(Fp(A))
+    else:
+        return 'p is not prime'
+        
+# keygen(p,g) that takes as an odd prime pp and a primitive root gg modulo pp and returns a tuple (privatekey, publickey) where privatekey is a randomly chosen integer 
+# between p^{1/4} and p^{3/4} and publickey is your public key function pubkey applied to (p,g,privatekey)
+def keygen(p,g):
+    g = mod(g,p)
+    if not g.is_primitive_root():
+        return 'g is not a primitive root mod p'
+    if is_prime(p):
+        if p%2 == 0:
+            return 'p is not an odd prime'
+        output = ()
+        p1 = ceil(p^0.25)
+        p2 = floor(p^0.75)
+        privatekey = Integers().random_element(p1, p2)
+        publickey = pubkey(p,g,privatekey)
+        output = (privatekey, publickey)
+        return output
+    else:
+        return 'p is not prime'
+
+# DH(p,A,y) for Bob that takes as input a prime p, Alice's public key A and Bob's private key y and returns their common secret key S as a SAGE integer.
+def DH(p,A,y):
+    if is_prime(p):
+        F1 = GF(p)
+        S = F1(A)^y
+        return ZZ(S)
+    else:
+        return 'p is not prime'
