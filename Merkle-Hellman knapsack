@@ -1,0 +1,75 @@
+# si(n,k) that generates a superincreasing sequence of SAGE integers
+def si(n,k):
+    s = [0]*n
+    s[0] = ZZ(randint(2,k))
+    for i in range(1, n):
+        for j in range(0,i):
+            m = randint(1,k)
+            s[i] = s[i] + s[j] + m
+    return s
+ 
+ # returns the public key that consists of the list TT of SAGE integers given by T[i] = a*S[i] mod p
+ def mhkey(S,p,a):
+    Fp = GF(p)
+    if not all(S[i]>sum(S[j] for j in range(i)) for i in range(1,len(S))):
+        return 'Invalid input'
+    total = 0
+    for _ in range(len(S)):
+        if S[_] < 0:
+            return 'Invalid input'
+        total = total + S[_]
+    if not is_prime(p) or p < total:
+        return 'Invalid input'
+    if a <= 1 or a >= p:
+        return 'Invalid input'
+    T = [0]*len(S)
+    for _ in range(len(S)):
+        T[_] = ZZ(Fp(a) * Fp(S[_]))
+    return T
+
+# ENCRYPTION
+def mhencrypt(T,m):
+    if len(m) > len(T):
+        return 'Invalid input'
+    for _ in range(len(T)):
+        if T[_] < 0:
+            return 'Invalid input'
+    sum = 0
+    for i in range(len(m)):
+        sum = sum + m[i]*T[i]
+    return sum
+
+# subsum(S,m) that takes as input a list consisting of a superincreasing sequence ss and an integer mm and tries to solve the subset sum problem
+def subsum(S,m):
+    if not all(S[i]>sum(S[j] for j in range(i)) for i in range(1,len(S))):
+        return 'Invalid input'
+    if type(m) != Integer:
+        return 'Invalid input'
+    length = len(S)
+    output = [0]*length
+    for i in range(length - 1, -1, -1):
+        if m < S[i]:
+            output[i] = 0
+        else:
+            output[i] = 1
+            m = m - S[i]
+    if m != 0:
+        return 'No solution!'
+    return output
+
+# DECRYPTION
+def mhdecrypt(S,p,a,c):
+    Fp = GF(p)
+    if not all(S[i]>sum(S[j] for j in range(i)) for i in range(1,len(S))):
+        return 'Invalid input'
+    total = 0
+    for _ in range(len(S)):
+        if S[_] < 0:
+            return 'Invalid input'
+        total = total + S[_]
+    if p < 2 or p < total:
+        return 'Invalid input'
+    if a <= 1 or a >= p:
+        return 'Invalid input'
+    m = ZZ(Fp(a)^(-1) * Fp(c))
+    return subsum(S,m)
