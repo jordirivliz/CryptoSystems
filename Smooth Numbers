@@ -1,0 +1,43 @@
+# Function that takes as input an integer B>1 and returns an increasing list that consist of all the prime powers less than or equal to B
+def fb(B):
+    # Check if B > 1
+    if B <= 1:
+        return 'Invalid input'
+    # returns an increasing list that consist of all the prime powers less than or equal to B
+    output = []
+    for i in range(2,B+1):
+        if len(factor(i)) == 1:
+            output.append(i)
+    return output
+ 
+# Function that takes as input two positive integers n and B>1 and tests if n is B-smooth. It returns a boolean value (True or False).
+def sm(n,B):
+    # Check that the n is positive and B > 1
+    if n <= 0 or B <= 1:
+        return 'Invalid input'
+    # Tests if n is B-smooth
+    if n == 1:
+        return True
+    if n < B:
+        return True
+    smooth_B = factor(n)
+    for val in smooth_B:
+        if val[0] > B:
+            return False
+    # Return a boolean value
+    return True
+
+# Function that takes as input two integers X>1 and B>1 and returns the number of B-smooth positive integers that are strictly smaller than X
+def smno(X,B):
+    # Check that X>1 and B>1
+    if X <= 1 or B <= 1:
+        return 'Invalid input'
+    # return the number of B-smooth positive integers that are strictly smaller than X
+    if X <= B:
+        return X - 1
+    smooth_B = []
+    smooth_B.append(1)
+    for i in range(2, X):
+        if factor(i)[-1][0] <= B:
+            smooth_B.append(i)
+    return len(smooth_B)
