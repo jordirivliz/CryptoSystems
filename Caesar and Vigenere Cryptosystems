@@ -1,15 +1,15 @@
 import string
 
-#takes as input a string of characters, capitalizes it and returns the integer obtained by concatenating the corresponding  ASCII codes
+# takes as input a string of characters, capitalizes it and returns the integer obtained by concatenating the corresponding  ASCII codes
 def str2num(s): 
     return ZZ(''.join([str(ord(i)) for i in s.upper()]))
 
-#the inverse of the function in (a), takes as input an integer and returns the corresponding message (capitalized)
+# the inverse of the function in (a), takes as input an integer and returns the corresponding message (capitalized)
 def num2str(m): 
     m=str(m)
     return ''.join(chr(int(m[i:i+2])) for i in range(0,len(m),2))
     
-#remove_punctuation(s) that takes as input a string s and returns the same string stripped of spaces and punctuation, and converts all letters to upper case.   
+# remove_punctuation(s) that takes as input a string s and returns the same string stripped of spaces and punctuation, and converts all letters to upper case.   
 def remove_punctuation(s):
     output = ''
     if type(s) != str:
@@ -27,7 +27,7 @@ def remove_punctuation(s):
                 output = output + char
     return output    
 
-#ngram(s,N) that takes as input a string s, and a positive integer N; returns the string s separated into N-grams, all in capital letters and stripped of punctuation.
+# ngram(s,N) that takes as input a string s, and a positive integer N; returns the string s separated into N-grams, all in capital letters and stripped of punctuation.
 def ngram(s,N):
     if N <= 0:
         return 'Invalid input'
