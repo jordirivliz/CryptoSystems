@@ -1,0 +1,206 @@
+# Helper functions, feel free to use them below.
+def str2num(s): #takes as input a string of characters, capitalizes it and returns the integer obtained by concatenating the corresponding  ASCII codes
+    return ZZ(''.join([str(ord(i)) for i in s.upper()]))
+
+def num2str(m): #the inverse of the function in (a), takes as input an integer and returns the corresponding message (capitalized)
+    m=str(m)
+    return ''.join(chr(int(m[i:i+2])) for i in range(0,len(m),2))
+
+# NTRU text conversion
+# This function takes input an integer q and a list a that consists of integers and returns a list b with components SAGE integers such that -q/2 < b[i] \leq q/2 
+# and b[i]≡a[i](modq).
+def centerlift(q,a):
+    lista = [(list(a)[i]%q if list(a)[i]%q<=q/2 else (list(a)[i]%q-q) ) for i in range(len(list(a)))]
+    b = [0]*len(lista)
+    for i in range(len(list(a))):
+        b[i] = lista[i]
+    return b
+   
+# This function that takes as input a string s and a prime q. First the function computes k the number of digits of q, breaks s into pieces [s_0, s_1,...] of length
+# ⌊(k−1)/2⌋, then computes m_i = str2num(s_i), forms the list m = [m_0, m_1, ...] of SAGE integers and returns centerlift(q,m). 
+# Thus we have obtained the list of the coefficients of a polynomial m_0 + m_1x + m_2x^2+ ... and we made sure the polynomial is centerd at q.   
+def str2ntru(s,q):
+    # Compute k the number of digits of q
+    a = str(q)
+    k = len(a)
+    # Break s into pieces of length ⌊(k−1)/2⌋
+    n = floor((k-1)/2)
+    l = [s[i:i+n] for i in range(0,len(s),n)]
+    # Compute m_i = str2num(s_i)
+    m = [str2num(l[i]) for i in range(len(l))]
+    # Return centerlift(q,m)
+    return centerlift(q,m)
+
+# This function takes as an input a list of integers listN and an integer N and checks that the length of the list listN is smaller than N.
+def ntruplaincheck(listN,N):
+    # Check that the length of the list listN is smaller than N.
+    if len(listN) >= N:
+        return False
+    else:
+        return True
+ 
+def ntru2str(L,q):
+    # checks that all the components of L are between −q/2 and q/2
+    n = -q//2
+    m = q//2
+    for val in L:
+        if val <= n or val > m:
+            return 'Invalid input'
+    # computes si = num2str(L[i]%q) for each element L[i] of the list L
+    s = [num2str(power_mod(i,1,q)) for i in L]
+    # returns the concatenated string of all the si's.
+    output = ''
+    for elem in s:
+        output = output + elem
+    return output
+    
+# NTRU preliminaries
+# This function takes as input two lists of length at most N, and returns a list h of length N with elements h[i]= j+k≡i(modN)∑f[j]g[k].
+# This encodes the polynomial convolution
+def convpoly(f,g, N):
+    # Check if input is a lists of length greater N
+    if len(f) > N or len(g) > N:
+        return 'Invalid input'
+    # make both inputs list of length N by populating with 0's
+    f = f +[0 for i in range(N-len(f))]
+    g = g +[0 for i in range(N-len(g))]
+    #returns a list h of length N
+    h = []
+    for i in range(N):
+        c = 0
+        for j in range(N):
+            c = c + list(f)[j]*list(g)[i-j]
+        h = h+[c]
+    return h
+# Function that computes the convolution inverses modulo p and q of a polynomial f.
+def ntruinv(N,p,q,f):
+    # Check if f is of the correct size
+    if len(f) > N:
+        return 'Invalid input'
+    # Try to create fp, return no solution if it is not possible
+    try:
+        S2.<u> = PolynomialRing(GF(p),x).quotient(x^N-1)
+        fp = S2(f)^(-1)
+        fp = list(fp)
+    except:
+        return 'No solution!'
+
+    # Try to create fq, return no solution if it is not possible
+    try:
+        S2.<u> = PolynomialRing(GF(q),x).quotient(x^N-1)
+        fq = S2(f)^(-1)
+        fq = list(fq)
+    except:
+        return 'No solution!'
+    # Returns a pair (fp,fq) where fp and fq are two lists of length N of SAGE integers such that convpoly(f,fp,N)=[1,0,0,0,...](modp)
+    # and convpoly(f,fq,N)=[1,0,0,0,...](modq)
+    fp = [ZZ(i) for i in fp]
+    fq = [ZZ(i) for i in fq]
+    output = (fp, fq)
+    return output
+
+# Function that checks that we have a valid set of parameters for an NTRU system
+def tcheck(N,d,e,f):
+    # Check that N>d+e:
+    if (d+e) >= N:
+        return False
+    # Check f is of length exactly N
+    if len(f) != N:
+        return False
+    # Check that f consists of d 1's, e (-1)'s and the rest 0s
+    ones = 0
+    negativeones = 0
+    zeros = 0
+    for val in f:
+        # Count number of 1
+        if val == 1:
+            ones += 1
+        # Count number of -1
+        if val == -1:
+            negativeones += 1
+        # Count number of 0
+        if val == 0:
+            zeros += 1
+    # Check there are d 1's
+    if ones != d:
+        return False
+    # Check there are e (-1)'s'
+    if negativeones != e:
+        return False
+    # Check there are (N-d-e) 0's
+    if zeros != (N-d-e):
+        return False
+    return True
+       
+# NTRU Cryotosystem 
+# Function that creates the private key for a NTRU Cryptosystem
+def ntruprivatekey(N,p,q,d):
+    # Populate f and g with all 0
+    f = [0]*N
+    g = [0]*N
+    # Populate f with d+1 1's in random positions
+    fones = 0
+    while fones != (d+1):
+        n1 = ZZ.random_element(0,N-1)
+        if f[n1] == 0:
+            f[n1] = 1
+            fones += 1
+    # Populate f with d -1's in random positions but avoiding those used by 1's
+    fminusone = 0
+    while fminusone != d:
+        n1 = ZZ.random_element(0,N-1)
+        if f[n1] == 0:
+            f[n1] = -1
+            fminusone += 1
+    # Populate g with d 1's in random positions
+    gones = 0
+    while gones != d:
+        n1 = ZZ.random_element(0,N-1)
+        if g[n1] == 0:
+            g[n1] = 1
+            gones += 1
+    # Populate g with d -1's in random positions but avoiding those used by 1's
+    gminusone = 0
+    while gminusone != d:
+        n1 = ZZ.random_element(0,N-1)
+        if g[n1] == 0:
+            g[n1] = -1
+            gminusone += 1
+    output = ()
+    output = (f,g)
+    return output
+ 
+ # Function that creates the public key for a NTRU Cryptosystem
+ def ntrupublickey(N,p,q,f,g):
+    # computes (fp, fq) = ntruinv(N,p,q,f)
+    (fp,fq) = ntruinv(N,p,q,f)
+    # return h = convpoly(fq,g, N).
+    h = convpoly(fq,g,N)
+    # Make every element in h an Integer
+    return h
+ 
+# NTRU Encryption
+def ntruencrypt(N,p,q,d,h,m):
+    # Choose a random list r of length N for which tcheck(N,d,d,r)= True
+    (f,g) = ntruprivatekey(N,p,q,d)
+    r = g
+    # Create list c of length N
+    c = [0]*N
+    # Populate c using the following expression: c[i]=p⋅convpoly(r,h,N)[i]+ m[i] (modq).
+    for i in range(N):
+        c[i] = power_mod(p * convpoly(r,h,N)[i] + m[i], 1, q)
+    return c
+    
+# NTRU Decryption
+def ntrudecrypt(N,p,q,d,f,fp,c):
+    # takes input integers N,p,q,d and lists f,g,c of length N
+    # computes a=convpoly(f,c,N)
+    a = convpoly(f,c,N)
+    # computes b=centerlift(q,a)
+    b = centerlift(q,a)
+    # returns m=convpoly(fp,b,N)
+    m = convpoly(fp,b,N)
+    # Convert m into a list modulo p centerlifted at p as a list of SAGE integers
+    m = centerlift(p,m)
+    return m
+    
