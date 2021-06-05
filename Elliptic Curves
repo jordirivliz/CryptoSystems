@@ -1,0 +1,127 @@
+# Helper functions, feel free to use them below. Do not interfere with this cell.
+def ephemeralkey(p):
+    k = ZZ.random_element(floor(p^(1/4))+1, floor(p^(3/4))+1)
+    return k
+    
+# produces a public key for Diffie-Hellman. It takes as input a prime p and integers A, B to build the elliptic curve modulo p 
+# given by E: y^2 = x^3 + Ax +B
+def pubkey(p, A, B, P, k):
+    if not is_prime(p):
+        return 'Invalid input'
+    if p <= 2:
+        return 'Invalid input'
+    if type(k) != Integer or type(A) != Integer or type(B) != Integer:
+        return 'Invalid input'
+    F = GF(p)
+    try:
+        E = EllipticCurve(F, [A,B])
+        try:
+            point = E(P)
+            output = point*k
+            if output[2] == 0:
+                return 'Invalid input'
+            output = (output[0], output[1])
+            return output
+        except:
+            return 'Invalid input'
+    except:
+        return 'Invalid input'
+
+# Elliptic curve Diffie-Hellman
+# This function takes as input a prime p, integers A and B that define an elliptic curve E: y^2 = x^3 +Ax+B modulo p, Bob's secret key b,
+# and the coordinates Q=(X,Y) of Alice's public key and returns their common secret key.
+def ecdh(p,A,B,b,Q):
+    if not is_prime(p):
+        return 'Invalid input'
+    if type(b) != Integer or type(A) != Integer or type(B) != Integer:
+        return 'Invalid input'
+    try:
+        E = EllipticCurve(GF(p), [A,B])
+        try:
+            point = E(Q)
+            output = b * point
+            output = (ZZ(output[0]), ZZ(output[1]))
+            return output
+        except:
+            return 'Invalid input'
+    except:
+        return 'Invalid input'
+        
+# Elliptic Curve Digital Signature Algorithm setup
+# This function takes as input a prime q, two integers A,B and outputs a tuple (p,(x,y)) where (x,y) is a pair of SAGE integers that represent the x,y
+# coordinates of a point G on the elliptic curve modulo q: E: y^2 = x^3 + Ax+B of order the largest prime divisor p of the number of points on E
+def ecsigset(q,A,B):
+    if not is_prime(q) and  q <= 2:
+        return 'Invalid input'
+    if type(A) != Integer or type(B) != Integer:
+        return 'Invalid input'
+    try:
+        E = EllipticCurve(GF(q), [A,B])
+        points = E.cardinality()
+        p = factor(points)[-1][0]
+        if p <= 2:
+            return 'Invalid input'
+        G = E.random_point()
+        while(G.additive_order() != p):
+            P = E.random_point()
+            G = E((q//p)*P)
+        output = (p,(ZZ(G[0]),ZZ(G[1])))
+        return output
+    except:
+        return 'Invalid input'
+
+# Elliptic Curve Digital Signature Algorithm signature
+# This function takes as input two primes p,q, four integers m,d,A,B and G= (x,y) a tuples of integers that are the x,y coordinates of a point G 
+# on the elliptic curve E: y^2 = x^3 + Ax +B such that G has prime order p.
+def ecsig(p,q,A,B,G,d,m):
+    if not is_prime(p) and not is_prime(q):
+        return 'Invalid input'
+    if type(m) != Integer or type(d) != Integer or type(A) != Integer or type(B) != Integer:
+        return 'Invalid input'
+    if m >= p or m >= q:
+        return 'Invalid input'
+    try:
+        # Create elliptic curve mod q
+        E = EllipticCurve(GF(q), [A,B])
+        try:
+            # Create point G
+            point = E(G)
+            # Check that p is the order of G
+            if point.additive_order() != p:
+                return 'Invalid input'
+            # Compute public key
+            Q = d*point
+            Qx = Q[0]
+            Qy = Q[1]
+            Q = (Qx,Qy)
+            # Random integer k
+            k = ephemeralkey(p)
+            # Output consisting of a tuple of tuples. One of (r,s), the other (Qx,Qy)
+            R = k*point
+            r = R[0]
+            s = power_mod(k,-1,p)*(m+r*d)
+            output = ((r,s),Q)
+            return output
+        except:
+            return 'Invalid input1'
+    except:
+        return 'Invalid input' 
+   
+# Elliptic Curve Digital Signature Algorithm verification
+def ecdsaverify(q,A,B,G,p,Q,m,signature):
+    if not is_prime(p) and not is_prime(q):
+        return 'Invalid input'
+    if type(m) != Integer:
+        return 'Invalid input'
+    F = GF(p)
+    E = EllipticCurve(GF(q), [A,B])
+    pointG = E(G)
+    if pointG.additive_order() != p:
+        return 'Invalid input'
+    pointQ = E(Q)
+    ss = F(signature[1])^(-1)
+    C = ZZ(m*ss)*pointG + ZZ(signature[0]*ss)*pointQ
+    if F(ZZ(C[0])) == F(signature[0]):
+        return True
+    else:
+        return False
